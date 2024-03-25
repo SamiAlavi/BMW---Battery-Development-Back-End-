@@ -1,6 +1,7 @@
 const sqlite3 = require('sqlite3').verbose();
 const fs = require('fs');
 const path = require('path');
+const csv = require('csv-parser');
 require('dotenv').config();
 
 const dbPath = process.env.DB_NAME;
@@ -23,6 +24,7 @@ function initDB() {
             } else {
                 console.log('Script executed successfully');
                 csvFilesGrouped = groupCsvFilesByPrefix(csvDataPath)
+                readCsvFiles(csvFilesGrouped)
             }
             // Close the database connection
             db.close();
@@ -42,12 +44,46 @@ function groupCsvFilesByPrefix(directory) {
                 if (!csvFilesGrouped[prefix]) {
                     csvFilesGrouped[prefix] = [];
                 }
-                csvFilesGrouped[prefix].push(filename);
+                filepath = path.join(directory, filename)
+                csvFilesGrouped[prefix].push(filepath);
             }
         }
     });
     console.log(csvFilesGrouped)
     return csvFilesGrouped;
+}
+
+function readCsvFiles(csvFilesGrouped) {
+    for (const group in csvFilesGrouped) {
+        console.log(`Group: ${group}`);
+        csvFilesGrouped[group].forEach(filepath => {
+            readCsvFile(filepath)
+                .then(rows => {
+                    console.log('CSV file contents:');
+                    console.log(rows);
+                })
+                .catch(error => {
+                    console.error('Error reading CSV file:', error);
+                });
+        });
+    }
+}
+
+function readCsvFile(filepath) {
+    return new Promise((resolve, reject) => {
+        const rows = [];
+        fs.createReadStream(filepath)
+            .pipe(csv())
+            .on('data', (row) => {
+                rows.push(row);
+            })
+            .on('end', () => {
+                resolve(rows);
+            })
+            .on('error', (error) => {
+                reject(error);
+            });
+    });
 }
 
 initDB()
