@@ -14,19 +14,20 @@ const db = new sqlite3.Database(dbPath);
 const csvMatchPattern = /^Generic_(\d+)_/
 
 const sql_CSV_Data = "INSERT INTO CSV_Data (filename, timestamp) VALUES (?, ?)"
+const sql_Capacity = "INSERT INTO Capacity (file_id, cycle_number, capacity) VALUES "
 
 function initDB() {
     const sqlScript = fs.readFileSync(scriptPath, 'utf8');
 
     // Execute the SQL script
     db.serialize(() => {
-        db.exec(sqlScript, function(err) {
+        db.exec(sqlScript, async function(err) {
             if (err) {
                 console.error('Error executing script:', err);
             } else {
                 console.log('Script executed successfully');
                 csvFilesGrouped = groupCsvFilesByPrefix(csvDataPath)
-                readCsvFiles(csvFilesGrouped)
+                await readCsvFiles(csvFilesGrouped)
             }
             // Close the database connection
             db.close();
@@ -46,38 +47,37 @@ function groupCsvFilesByPrefix(directory) {
                 if (!csvFilesGrouped[prefix]) {
                     csvFilesGrouped[prefix] = [];
                 }
-                filepath = path.join(directory, filename)
-                csvFilesGrouped[prefix].push(filepath);
+                csvFilesGrouped[prefix].push(filename);
             }
         }
     });
     return csvFilesGrouped;
 }
 
-function readCsvFiles(csvFilesGrouped) {
+async function readCsvFiles(csvFilesGrouped) {
     for (const group in csvFilesGrouped) {
-        csvFilesGrouped[group].forEach(async filepath => {
-            const filename = path.basename(filepath);
+        for (let filename of csvFilesGrouped[group]) {
             const csvDataID = await insertData(sql_CSV_Data, [filename, Date.now()])
-            console.log(`${filename}: ${csvDataID}`)
-            readCsvFile(filepath)
-                .then(rows => {
-                    console.log(`CSV file contents: ${rows.length} rows`);
+            readCsvFile(filename)
+                .then(async rows => {
                     if (filename.includes("capacity_data")) {
-        
+                        const placeholders = rows.map(() => '(?, ?, ?)').join(', ');
+                        const values = rows.flatMap(row => [csvDataID, row.cycle_number, row.capacity]);
+                        const sql = `${sql_Capacity}${placeholders}`
+                        await insertData(sql, values)
                     }
-                    else if (filename.includes("cycle_data")) {
-        
+                    else if (filename.includes("cycle_data")) {     
                     }
                 })
                 .catch(error => {
                     console.error('Error reading CSV file:', error);
                 });
-        });
+        }
     }
 }
 
-function readCsvFile(filepath) {
+function readCsvFile(filename) {
+    const filepath = path.join(csvDataPath, filename)
     return new Promise((resolve, reject) => {
         const rows = [];
         fs.createReadStream(filepath)
