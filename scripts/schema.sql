@@ -5,10 +5,13 @@ CREATE TABLE IF NOT EXISTS CSV_Data (
 );
 
 CREATE TABLE IF NOT EXISTS Capacity (
-    cycle_number INTEGER PRIMARY KEY,
+    file_id INTEGER,
+    cycle_number INTEGER,
     capacity REAL,
-    file_id INTEGER REFERENCES CSV_Data(id)
+    PRIMARY KEY (file_id, cycle_number),
+    FOREIGN KEY (file_id) REFERENCES CSV_Data(id)
 );
+
 
 CREATE TABLE IF NOT EXISTS Cycle (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
