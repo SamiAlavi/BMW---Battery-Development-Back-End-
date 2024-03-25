@@ -17,6 +17,8 @@ const sql_CSV_Data = "INSERT INTO CSV_Data (filename, timestamp) VALUES (?, ?)"
 const sql_Capacity = "INSERT INTO Capacity (file_id, cycle_number, capacity) VALUES "
 const sql_Cycle = "INSERT INTO Cycle (cycle_number, time, current, voltage) VALUES "
 
+const BATCH_SIZE = 7000
+
 function initDB() {
     const sqlScript = fs.readFileSync(scriptPath, 'utf8');
 
@@ -26,7 +28,7 @@ function initDB() {
             if (err) {
                 console.error('Error executing script:', err);
             } else {
-                console.log('Script executed successfully');
+                console.log('Schema Script executed successfully');
                 csvFilesGrouped = groupCsvFilesByPrefix(csvDataPath)
                 await readCsvFiles(csvFilesGrouped)
             }
@@ -59,20 +61,10 @@ async function readCsvFiles(csvFilesGrouped) {
     for (const group in csvFilesGrouped) {
         for (let filename of csvFilesGrouped[group]) {
             const csvDataID = await insertData(sql_CSV_Data, [filename, Date.now()])
-            readCsvFile(filename)
+            await readCsvFile(filename)
                 .then(async rows => {
-                    if (filename.includes("capacity_data")) {
-                        const placeholders = rows.map(() => '(?, ?, ?)').join(', ');
-                        const values = rows.flatMap(row => [csvDataID, row.cycle_number, row.capacity]);
-                        const sql = `${sql_Capacity}${placeholders}`
-                        await insertData(sql, values)
-                    }
-                    else if (filename.includes("cycle_data")) {
-                        const placeholders = rows.map(() => '(?, ?, ?, ?)').join(', ');
-                        const values = rows.flatMap(row => [row.cycle_number, row.time, row.current, row.voltage]);
-                        const sql = `${sql_Cycle}${placeholders}`
-                        await insertData(sql, values)        
-                    }
+                    await insertCSVData(csvDataID, filename, rows)
+                    console.log(`Data Loaded: ${filename}`);
                 })
                 .catch(error => {
                     console.error('Error reading CSV file:', error);
@@ -99,6 +91,37 @@ function readCsvFile(filename) {
     });
 }
 
+async function insertCSVData(csvDataID, filename, rows) {
+    if (filename.includes("capacity_data")) {
+        for (let i=0; i<rows.length; i+=BATCH_SIZE) {
+            const batch = rows.slice(i, i + BATCH_SIZE);
+            const placeholders = batch.map(() => '(?,?,?)').join(',');
+            const values = batch.flatMap(row => {
+                const cycle_number = parseInt(row.cycle_number)
+                const capacity = parseFloat(row.capacity)
+                return [csvDataID, cycle_number, capacity]
+            });
+            const sql = `${sql_Capacity}${placeholders}`
+            await insertData(sql, values)
+        }
+    }
+    else if (filename.includes("cycle_data")) {
+        for (let i=0; i<rows.length; i+=BATCH_SIZE) {
+            const batch = rows.slice(i, i + BATCH_SIZE);
+            const placeholders = batch.map(() => '(?,?,?,?)').join(',');
+            const values = batch.flatMap(row => {
+                const cycle_number = parseInt(row.cycle_number)
+                const time = parseInt(row.time)
+                const current = parseFloat(row.current)
+                const voltage = parseFloat(row.voltage)
+                return [cycle_number, time, current, voltage]
+            });
+            const sql = `${sql_Cycle}${placeholders}`
+            await insertData(sql, values)  
+        }      
+    }
+}
+
 function insertData(sql, values) {
     return new Promise((resolve, reject) => {
         db.run(sql, values, function(error) {
@@ -110,5 +133,6 @@ function insertData(sql, values) {
         });
     });
 }
+
 
 initDB()
