@@ -15,6 +15,7 @@ const csvMatchPattern = /^Generic_(\d+)_/
 
 const sql_CSV_Data = "INSERT INTO CSV_Data (filename, timestamp) VALUES (?, ?)"
 const sql_Capacity = "INSERT INTO Capacity (file_id, cycle_number, capacity) VALUES "
+const sql_Cycle = "INSERT INTO Cycle (cycle_number, time, current, voltage) VALUES "
 
 function initDB() {
     const sqlScript = fs.readFileSync(scriptPath, 'utf8');
@@ -66,7 +67,11 @@ async function readCsvFiles(csvFilesGrouped) {
                         const sql = `${sql_Capacity}${placeholders}`
                         await insertData(sql, values)
                     }
-                    else if (filename.includes("cycle_data")) {     
+                    else if (filename.includes("cycle_data")) {
+                        const placeholders = rows.map(() => '(?, ?, ?, ?)').join(', ');
+                        const values = rows.flatMap(row => [row.cycle_number, row.time, row.current, row.voltage]);
+                        const sql = `${sql_Cycle}${placeholders}`
+                        await insertData(sql, values)        
                     }
                 })
                 .catch(error => {
