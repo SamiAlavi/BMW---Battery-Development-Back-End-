@@ -1,3 +1,7 @@
+DROP TABLE IF EXISTS Cycle;
+DROP TABLE IF EXISTS Capacity;
+DROP TABLE IF EXISTS CSV_Data;
+
 CREATE TABLE IF NOT EXISTS CSV_Data (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     filename TEXT,
@@ -16,7 +20,7 @@ CREATE TABLE IF NOT EXISTS Capacity (
 CREATE TABLE IF NOT EXISTS Cycle (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     cycle_number INTEGER REFERENCES Capacity(cycle_number),
-    time TEXT,
+    time INTEGER,
     current REAL,
     voltage REAL
 );
