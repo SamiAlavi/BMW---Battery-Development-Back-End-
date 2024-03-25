@@ -16,11 +16,6 @@ const db = new sqlite3Verbose.Database(dbPath);
 // Multer configuration for file upload
 const upload = multer({ dest: 'uploads/' });
 
-// Create a table (if not exists)
-db.serialize(() => {
-  db.run("CREATE TABLE IF NOT EXISTS your_table_name (column1 TEXT, column2 TEXT)"); // Adjust column definitions accordingly
-});
-
 app.get('/', (req, res) => {
     res.send('Hello, world!');
 });
