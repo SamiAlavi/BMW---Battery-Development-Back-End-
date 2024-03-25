@@ -13,6 +13,8 @@ const db = new sqlite3.Database(dbPath);
 
 const csvMatchPattern = /^Generic_(\d+)_/
 
+const sql_CSV_Data = "INSERT INTO CSV_Data (filename, timestamp) VALUES (?, ?)"
+
 function initDB() {
     const sqlScript = fs.readFileSync(scriptPath, 'utf8');
 
@@ -49,18 +51,24 @@ function groupCsvFilesByPrefix(directory) {
             }
         }
     });
-    console.log(csvFilesGrouped)
     return csvFilesGrouped;
 }
 
 function readCsvFiles(csvFilesGrouped) {
     for (const group in csvFilesGrouped) {
-        console.log(`Group: ${group}`);
-        csvFilesGrouped[group].forEach(filepath => {
+        csvFilesGrouped[group].forEach(async filepath => {
+            const filename = path.basename(filepath);
+            const csvDataID = await insertData(sql_CSV_Data, [filename, Date.now()])
+            console.log(`${filename}: ${csvDataID}`)
             readCsvFile(filepath)
                 .then(rows => {
-                    console.log('CSV file contents:');
-                    console.log(rows);
+                    console.log(`CSV file contents: ${rows.length} rows`);
+                    if (filename.includes("capacity_data")) {
+        
+                    }
+                    else if (filename.includes("cycle_data")) {
+        
+                    }
                 })
                 .catch(error => {
                     console.error('Error reading CSV file:', error);
@@ -83,6 +91,18 @@ function readCsvFile(filepath) {
             .on('error', (error) => {
                 reject(error);
             });
+    });
+}
+
+function insertData(sql, values) {
+    return new Promise((resolve, reject) => {
+        db.run(sql, values, function(error) {
+            if (error) {
+                reject(error);
+            } else {
+                resolve(this.lastID); // Return the last inserted row ID
+            }
+        });
     });
 }
 
