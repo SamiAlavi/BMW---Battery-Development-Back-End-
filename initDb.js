@@ -9,17 +9,21 @@ const scriptPath = path.join(scriptDir, 'schema.sql');
 
 const db = new sqlite3.Database(dbPath);
 
-const sqlScript = fs.readFileSync(scriptPath, 'utf8');
+function initSchema() {
+    const sqlScript = fs.readFileSync(scriptPath, 'utf8');
 
-// Execute the SQL script
-db.serialize(() => {
-    db.exec(sqlScript, function(err) {
-        if (err) {
-            console.error('Error executing script:', err);
-        } else {
-            console.log('Script executed successfully');
-        }
-        // Close the database connection
-        db.close();
-    });
-});
+    // Execute the SQL script
+    db.serialize(() => {
+        db.exec(sqlScript, function(err) {
+            if (err) {
+                console.error('Error executing script:', err);
+            } else {
+                console.log('Script executed successfully');
+            }
+            // Close the database connection
+            db.close();
+        });
+    });    
+}
+
+initSchema()
