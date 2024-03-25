@@ -3,14 +3,15 @@ import csv from 'csv-parser';
 import multer from 'multer';
 import sqlite3 from 'sqlite3';
 import fs from 'fs';
+require('dotenv').config();
 
 const app = express();
-const PORT = 5000;
+const PORT = parseInt(process.env.PORT ?? "5000");
 
 // Create or open the SQLite database
 const sqlite3Verbose = sqlite3.verbose()
-const db = new sqlite3Verbose.Database('database.db');
-
+const dbPath = process.env.DB_NAME ?? "database.db";
+const db = new sqlite3Verbose.Database(dbPath);
 
 // Multer configuration for file upload
 const upload = multer({ dest: 'uploads/' });
