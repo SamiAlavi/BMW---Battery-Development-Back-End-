@@ -74,8 +74,8 @@ app.get('/csv_data', async (req, res) => {
   }
 });
 
-app.get('/capacity/:id', async (req, res) => {
-  const { id } = req.params;
+app.get('/capacity/:file_id', async (req, res) => {
+  const { file_id } = req.params;
 
   try {
       const query = `
@@ -84,7 +84,7 @@ app.get('/capacity/:id', async (req, res) => {
           LEFT JOIN Capacity ON CSV_Data.id = Capacity.file_id
           WHERE CSV_Data.id = ?
       `;
-      const rows = await databaseService.query(query, [id]);
+      const rows = await databaseService.query(query, [file_id]);
       res.json(rows);
   } catch (error: any) {
       const errorMessage = `Internal server error: ${error?.message}`
