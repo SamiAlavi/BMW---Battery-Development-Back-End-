@@ -69,8 +69,8 @@ app.get('/csv_data', async (req, res) => {
       const rows = await databaseService.query(query);
       res.json(rows);
   } catch (error: any) {
-      console.error('Error executing query:', error?.message);
-      res.status(500).json({ error: 'Internal server error' });
+      const errorMessage = `Internal server error: ${error?.message}`
+      res.status(500).json({ error: errorMessage });
   }
 });
 
