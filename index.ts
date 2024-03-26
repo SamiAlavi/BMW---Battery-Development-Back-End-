@@ -79,10 +79,9 @@ app.get('/capacity/:file_id', async (req, res) => {
 
   try {
       const query = `
-          SELECT Capacity.cycle_number, Capacity.capacity
-          FROM CSV_Data
-          LEFT JOIN Capacity ON CSV_Data.id = Capacity.file_id
-          WHERE CSV_Data.id = ?
+          SELECT cycle_number, capacity
+          FROM Capacity 
+          WHERE file_id = ?
       `;
       const rows = await databaseService.query(query, [file_id]);
       res.json(rows);
