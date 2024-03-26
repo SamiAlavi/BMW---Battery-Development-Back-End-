@@ -1,4 +1,5 @@
 import express from 'express';
+import cors from 'cors';
 import csv from 'csv-parser';
 import multer from 'multer';
 import fs from 'fs';
@@ -6,6 +7,7 @@ import {databaseService} from './services/databaseservice';
 require('dotenv').config();
 
 const app = express();
+app.use(cors())
 
 // Multer configuration for file upload
 const upload = multer({ dest: 'uploads/' });
