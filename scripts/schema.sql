@@ -25,5 +25,5 @@ CREATE TABLE IF NOT EXISTS Cycle (
     time INTEGER,
     current REAL,
     voltage REAL,
-    FOREIGN KEY (file_id, cycle_number) REFERENCES Capacity(file_id, cycle_number)
+    FOREIGN KEY (file_id) REFERENCES CSV_Data(id)
 );
