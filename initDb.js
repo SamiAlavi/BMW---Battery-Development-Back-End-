@@ -13,9 +13,13 @@ const db = new sqlite3.Database(dbPath);
 
 const csvMatchPattern = /^Generic_(\d+)_/
 
-const sql_CSV_Data = "INSERT INTO CSV_Data (filename, timestamp) VALUES (?, ?)"
-const sql_Capacity = "INSERT INTO Capacity (file_id, cycle_number, capacity) VALUES "
-const sql_Cycle = "INSERT INTO Cycle (file_id, cycle_number, time, current, voltage) VALUES "
+const table_CSV_Data = "CSV_Data"
+const table_Capacity = "Capacity"
+const table_Cycle = "Cycle"
+
+const sql_CSV_Data = `INSERT INTO ${table_CSV_Data} (filename, type, timestamp) VALUES (?, ?, ?) `
+const sql_Capacity = `INSERT INTO ${table_Capacity} (file_id, cycle_number, capacity) VALUES `
+const sql_Cycle = `INSERT INTO ${table_Cycle} (file_id, cycle_number, time, current, voltage) VALUES `
 
 const BATCH_SIZE = 6000
 
@@ -60,7 +64,8 @@ function groupCsvFilesByPrefix(directory) {
 async function readCsvFiles(csvFilesGrouped) {
     for (const group in csvFilesGrouped) {
         for (let filename of csvFilesGrouped[group]) {
-            const csvDataID = await insertData(sql_CSV_Data, [filename, Date.now()])
+            const type = filename.includes("capacity") ? table_Capacity : table_Cycle
+            const csvDataID = await insertData(sql_CSV_Data, [filename, type, Date.now()])
             await readCsvFile(filename)
                 .then(async rows => {
                     await insertCSVData(csvDataID, filename, rows)

@@ -5,6 +5,7 @@ DROP TABLE IF EXISTS CSV_Data;
 CREATE TABLE IF NOT EXISTS CSV_Data (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
     filename TEXT,
+    type TEXT,
     timestamp TEXT
 );
 
