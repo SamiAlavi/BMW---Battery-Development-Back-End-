@@ -92,6 +92,26 @@ app.get('/capacity/:file_id', async (req, res) => {
   }
 });
 
+
+app.get('/cycle/:file_id', async (req, res) => {
+  const { file_id } = req.params;
+
+  try {
+      const query = `
+          SELECT time, current, voltage
+          FROM Cycle 
+          WHERE file_id = ?
+      `;
+      const rows = await databaseService.query(query, [file_id]);
+
+      // Send the response
+      res.json(rows);
+  } catch (error: any) {
+      const errorMessage = `Internal server error: ${error?.message}`
+      res.status(500).json({ error: errorMessage });
+  }
+});
+
 const PORT = parseInt(process.env.PORT ?? "5000");
 app.listen(PORT, () => {
     console.log(`Server is running on http://localhost:${PORT}`);
