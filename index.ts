@@ -1,17 +1,11 @@
 import express from 'express';
 import csv from 'csv-parser';
 import multer from 'multer';
-import sqlite3 from 'sqlite3';
 import fs from 'fs';
+import {databaseService} from './services/databaseservice';
 require('dotenv').config();
 
 const app = express();
-const PORT = parseInt(process.env.PORT ?? "5000");
-
-// Create or open the SQLite database
-const sqlite3Verbose = sqlite3.verbose()
-const dbPath = process.env.DB_NAME ?? "database.db";
-const db = new sqlite3Verbose.Database(dbPath);
 
 // Multer configuration for file upload
 const upload = multer({ dest: 'uploads/' });
@@ -67,7 +61,20 @@ app.post('/upload', upload.single('file'), (req, res) => {
         //   });
         // });
       });
-  });
+});
+
+app.get('/csv_data', async (req, res) => {
+  try {
+      const query = 'SELECT * FROM CSV_Data';
+      const rows = await databaseService.query(query);
+      res.json(rows);
+  } catch (error: any) {
+      console.error('Error executing query:', error?.message);
+      res.status(500).json({ error: 'Internal server error' });
+  }
+});
+
+const PORT = parseInt(process.env.PORT ?? "5000");
 app.listen(PORT, () => {
     console.log(`Server is running on http://localhost:${PORT}`);
 });
