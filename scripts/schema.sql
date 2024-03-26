@@ -19,8 +19,10 @@ CREATE TABLE IF NOT EXISTS Capacity (
 
 CREATE TABLE IF NOT EXISTS Cycle (
     id INTEGER PRIMARY KEY AUTOINCREMENT,
-    cycle_number INTEGER REFERENCES Capacity(cycle_number),
+    file_id INTEGER,
+    cycle_number INTEGER,
     time INTEGER,
     current REAL,
-    voltage REAL
+    voltage REAL,
+    FOREIGN KEY (file_id, cycle_number) REFERENCES Capacity(file_id, cycle_number)
 );

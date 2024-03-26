@@ -15,9 +15,9 @@ const csvMatchPattern = /^Generic_(\d+)_/
 
 const sql_CSV_Data = "INSERT INTO CSV_Data (filename, timestamp) VALUES (?, ?)"
 const sql_Capacity = "INSERT INTO Capacity (file_id, cycle_number, capacity) VALUES "
-const sql_Cycle = "INSERT INTO Cycle (cycle_number, time, current, voltage) VALUES "
+const sql_Cycle = "INSERT INTO Cycle (file_id, cycle_number, time, current, voltage) VALUES "
 
-const BATCH_SIZE = 7000
+const BATCH_SIZE = 6000
 
 function initDB() {
     const sqlScript = fs.readFileSync(scriptPath, 'utf8');
@@ -108,13 +108,13 @@ async function insertCSVData(csvDataID, filename, rows) {
     else if (filename.includes("cycle_data")) {
         for (let i=0; i<rows.length; i+=BATCH_SIZE) {
             const batch = rows.slice(i, i + BATCH_SIZE);
-            const placeholders = batch.map(() => '(?,?,?,?)').join(',');
+            const placeholders = batch.map(() => '(?,?,?,?,?)').join(',');
             const values = batch.flatMap(row => {
                 const cycle_number = parseInt(row.cycle_number)
                 const time = parseInt(row.time)
                 const current = parseFloat(row.current)
                 const voltage = parseFloat(row.voltage)
-                return [cycle_number, time, current, voltage]
+                return [csvDataID, cycle_number, time, current, voltage]
             });
             const sql = `${sql_Cycle}${placeholders}`
             await insertData(sql, values)  
