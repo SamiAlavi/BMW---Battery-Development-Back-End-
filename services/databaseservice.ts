@@ -71,6 +71,23 @@ class DatabaseService {
             });
         });
     }
+
+    public getColumnNames(tableName: string): Promise<string[]> {
+        return new Promise((resolve, reject) => {
+            const query = `PRAGMA table_info(${tableName})`;
+
+            this.db.all(query, (err, rows) => {
+                if (err) {
+                    console.error('Error executing query:', err.message);
+                    reject(err);
+                    return;
+                }
+
+                const columnNames = rows.map((row: any) => row.name);
+                resolve(columnNames);
+            });
+        });
+    }
 }
 
 const databaseService = new DatabaseService()
