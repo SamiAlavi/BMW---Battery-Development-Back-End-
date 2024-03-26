@@ -74,6 +74,24 @@ app.get('/csv_data', async (req, res) => {
   }
 });
 
+app.get('/capacity/:id', async (req, res) => {
+  const { id } = req.params;
+
+  try {
+      const query = `
+          SELECT Capacity.cycle_number, Capacity.capacity
+          FROM CSV_Data
+          LEFT JOIN Capacity ON CSV_Data.id = Capacity.file_id
+          WHERE CSV_Data.id = ?
+      `;
+      const rows = await databaseService.query(query, [id]);
+      res.json(rows);
+  } catch (error: any) {
+      const errorMessage = `Internal server error: ${error?.message}`
+      res.status(500).json({ error: errorMessage });
+  }
+});
+
 const PORT = parseInt(process.env.PORT ?? "5000");
 app.listen(PORT, () => {
     console.log(`Server is running on http://localhost:${PORT}`);
