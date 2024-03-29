@@ -128,7 +128,6 @@ app.get('/columns/:type', async (req, res) => {
 });
 
 app.post('/visualize', async (req, res) => {
-  console.log(req.body)
   const {file_id, type, cols} = req.body;
   try {
     const query = `
@@ -136,8 +135,17 @@ app.post('/visualize', async (req, res) => {
         FROM ${type} 
         WHERE file_id = ${file_id}
     `;
-    const rows = await databaseService.query(query);
-    res.json(rows);
+    const rows = await databaseService.query(query); 
+    const result: any= {}
+    cols.forEach((col: string) => {
+      result[col] = []
+    })
+    rows.forEach((row: object) => {
+      Object.entries(row).forEach(([col, value]) => {
+        result[col].push(value)
+      })
+    })
+    res.json(result);
 } catch (error: any) {
     const errorMessage = `Internal server error: ${error?.message}`
     res.status(500).json({ error: errorMessage });
