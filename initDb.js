@@ -14,8 +14,8 @@ const db = new sqlite3.Database(dbPath);
 const csvMatchPattern = /^Generic_(\d+)_/
 
 const table_CSV_Data = "CSV_Data"
-const table_Capacity = "Capacity"
-const table_Cycle = "Cycle"
+const table_Capacity = "capacity"
+const table_Cycle = "cycle"
 
 const sql_CSV_Data = `INSERT INTO ${table_CSV_Data} (filename, type, timestamp) VALUES (?, ?, ?) `
 const sql_Capacity = `INSERT INTO ${table_Capacity} (file_id, cycle_number, capacity) VALUES `
