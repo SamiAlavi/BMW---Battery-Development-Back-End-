@@ -3,11 +3,13 @@ import cors from 'cors';
 import csv from 'csv-parser';
 import multer from 'multer';
 import fs from 'fs';
+import bodyParser from 'body-parser';
 import {databaseService} from './services/databaseservice';
 require('dotenv').config();
 
 const app = express();
 app.use(cors())
+app.use(bodyParser.json());
 
 // Multer configuration for file upload
 const upload = multer({ dest: 'uploads/' });
@@ -118,13 +120,28 @@ app.get('/columns/:type', async (req, res) => {
 
   try {
       const rows = await databaseService.getColumnNames(type);
-
-      // Send the response
       res.json(rows);
   } catch (error: any) {
       const errorMessage = `Internal server error: ${error?.message}`
       res.status(500).json({ error: errorMessage });
   }
+});
+
+app.post('/visualize', async (req, res) => {
+  console.log(req.body)
+  const {file_id, type, cols} = req.body;
+  try {
+    const query = `
+        SELECT ${cols.join(',')}
+        FROM ${type} 
+        WHERE file_id = ${file_id}
+    `;
+    const rows = await databaseService.query(query);
+    res.json(rows);
+} catch (error: any) {
+    const errorMessage = `Internal server error: ${error?.message}`
+    res.status(500).json({ error: errorMessage });
+}
 });
 
 const PORT = parseInt(process.env.PORT ?? "5000");
