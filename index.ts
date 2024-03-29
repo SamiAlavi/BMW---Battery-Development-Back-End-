@@ -113,6 +113,20 @@ app.get('/cycle/:file_id', async (req, res) => {
   }
 });
 
+app.get('/columns/:type', async (req, res) => {
+  const { type } = req.params;
+
+  try {
+      const rows = await databaseService.getColumnNames(type);
+
+      // Send the response
+      res.json(rows);
+  } catch (error: any) {
+      const errorMessage = `Internal server error: ${error?.message}`
+      res.status(500).json({ error: errorMessage });
+  }
+});
+
 const PORT = parseInt(process.env.PORT ?? "5000");
 app.listen(PORT, () => {
     console.log(`Server is running on http://localhost:${PORT}`);

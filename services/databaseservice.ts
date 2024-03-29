@@ -83,7 +83,13 @@ class DatabaseService {
                     return;
                 }
 
-                const columnNames = rows.map((row: any) => row.name);
+                const columnNames: string[] = []
+                rows.forEach((row: any) => {
+                    const name: string = row.name
+                    if (!name.includes("id")) {
+                        columnNames.push(name)
+                    }
+                })
                 resolve(columnNames);
             });
         });
