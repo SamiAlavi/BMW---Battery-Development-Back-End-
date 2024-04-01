@@ -21,7 +21,7 @@ app.get('/', (req, res) => {
 // Endpoint for file upload
 app.post('/upload', upload.single('file'), (req, res) => {
     // Check if file is provided
-    if (!req.file || !req.file.buffer) {
+    if (!req.file) {
       res.status(400).send('No file uploaded');
       return;
     }
@@ -32,6 +32,7 @@ app.post('/upload', upload.single('file'), (req, res) => {
       .pipe(csv())
       .on('data', (data) => fileRows.push(data))
       .on('end', () => {
+        console.log(fileRows)
         // Insert data into SQLite table
         // const placeholders = fileRows[0] ? '(' + Object.keys(fileRows[0]).map(_ => '?').join(', ') + ')' : null;
         // if (!placeholders) {
