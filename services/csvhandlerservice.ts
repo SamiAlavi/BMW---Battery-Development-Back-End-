@@ -9,7 +9,7 @@ class CSVHandlerService {
     private readonly table_Capacity = "capacity"
     private readonly table_Cycle = "cycle"
 
-    private readonly cols_CSV_Data = ['filename', 'type', 'timestamp']
+    private readonly cols_CSV_Data = ['filename', 'timestamp', 'type']
     private readonly cols_Capacity = ['file_id', 'cycle_number', 'capacity']
     private readonly cols_Cycle = ['file_id', 'cycle_number', 'time', 'current', 'voltage']
     
@@ -42,6 +42,24 @@ class CSVHandlerService {
                 resolve(_data);
               });
         })
+    }
+
+    private validateHeaders(headers: string[], reqHeaders: string[]): boolean {
+        if (headers.length !== reqHeaders.length) {
+            return false
+        }
+        headers = [...new Set(headers)];
+
+        for (let i = 0; i < headers.length; i++) {
+            if (headers[i] !== reqHeaders[i]) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+    private addToTableCSV_Data(data: TCSVData) {
+
     }
 
     public async handleCSV(filepath: string) {
