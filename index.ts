@@ -46,7 +46,8 @@ app.post('/upload', upload.array('files'), (req, res) => {
     for (let file of files) {
       // File processing logic
       const fileRows: any[] = [];
-      fs.createReadStream(file.path)
+      const filepath = file.path;
+      fs.createReadStream(filepath)
         .pipe(csv())
         .on('data', (data) => fileRows.push(data))
         .on('end', () => {
@@ -84,7 +85,10 @@ app.post('/upload', upload.array('files'), (req, res) => {
           //   });
           // });
         });
+
+        fs.unlink(filepath, ()=>{})
     }
+
     res.send(`${files.length} files successfully uploaded`);
 });
 
