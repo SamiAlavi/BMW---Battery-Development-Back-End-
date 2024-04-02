@@ -22,13 +22,26 @@ app.get('/', (req, res) => {
 // Endpoint for file upload
 app.post('/upload', upload.array('files'), (req, res) => {
     console.log(req.files)
-    if (!req.files || !Array.isArray(req.files)) {
+    if (!req.files) {
       res.status(400).send('No file uploaded');
       return;
     }
 
+    const files: Express.Multer.File[] = []
+    if (Array.isArray(req.files)) {
+      files.push(...req.files)
+    }
+    else if (typeof(req.files) === 'object') {
+      const temp: {
+        [fieldname: string]: Express.Multer.File[];
+      } = req.files;
+      Object.keys(temp).forEach((fieldname) => {
+        files.push(...temp[fieldname])
+      })
+    }
 
-    for (let file of req.files) {
+
+    for (let file of files) {
       // File processing logic
       const fileRows: any[] = [];
       fs.createReadStream(file.path)
