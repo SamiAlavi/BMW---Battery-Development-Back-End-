@@ -1,4 +1,4 @@
-import csv from 'csv-parser';
+import csv, { Options } from 'csv-parser';
 import fs from 'fs';
 import { databaseService } from './databaseservice';
 
@@ -15,12 +15,18 @@ class CSVHandlerService {
     private readonly sql_Capacity = `INSERT INTO ${this.table_Capacity} (file_id, cycle_number, capacity) VALUES `
     private readonly sql_Cycle = `INSERT INTO ${this.table_Cycle} (file_id, cycle_number, time, current, voltage) VALUES `
 
+    private readonly csv_read_options: Options = {
+        
+    };
+
     public handleCSV(filepath: string) {
         const fileRows: any[] = [];
+        const headers: string[] = []
 
         fs.createReadStream(filepath)
-          .pipe(csv())
-          .on('headers', (headers) => {
+          .pipe(csv(this.csv_read_options))
+          .on('headers', (_headers: string[]) => {
+            headers.push(..._headers)
           })
           .on('data', (data) => fileRows.push(data))
           .on('end', () => {
