@@ -21,7 +21,7 @@ app.get('/', (req, res) => {
 
 
 // Endpoint for file upload
-app.post('/upload', upload.array('files'), (req, res) => {
+app.post('/upload', upload.array('files'), async (req, res) => {
     if (!req.files) {
       res.status(400).send('No file uploaded');
       return;
@@ -44,7 +44,7 @@ app.post('/upload', upload.array('files'), (req, res) => {
 
 
     for (let file of files) {
-      csvHandlerService.handleCSV(file.path)
+      await csvHandlerService.handleCSV(file.path)
     }
 
     res.send(`${files.length} files successfully uploaded`);

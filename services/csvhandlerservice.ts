@@ -2,6 +2,8 @@ import csv, { Options } from 'csv-parser';
 import fs from 'fs';
 import { databaseService } from './databaseservice';
 
+type TCSVData = {headers: string[] , rows: any[]};
+
 class CSVHandlerService {
     private readonly table_CSV_Data = "CSV_Data"
     private readonly table_Capacity = "capacity"
@@ -19,22 +21,32 @@ class CSVHandlerService {
         
     };
 
-    public handleCSV(filepath: string) {
-        const fileRows: any[] = [];
-        const headers: string[] = []
+    private readData(filepath: string): Promise<TCSVData> {
+        return new Promise((resolve, reject) => {
+            const _data: TCSVData = {
+                headers: [],
+                rows: [],
+            }
+    
+            fs.createReadStream(filepath)
+              .pipe(csv(this.csv_read_options))
+              .on('headers', (_headers: string[]) => {
+                _data.headers.push(..._headers)
+              })
+              .on('data', (data) => _data.rows.push(data))
+              .on('error', reject)
+              .on('end', () => {
+                setTimeout(() => {
+                    fs.unlink(filepath, ()=>{})
+                }, 1000)
+                resolve(_data);
+              });
+        })
+    }
 
-        fs.createReadStream(filepath)
-          .pipe(csv(this.csv_read_options))
-          .on('headers', (_headers: string[]) => {
-            headers.push(..._headers)
-          })
-          .on('data', (data) => fileRows.push(data))
-          .on('end', () => {
-
-            setTimeout(() => {
-                fs.unlink(filepath, ()=>{})
-            }, 1000)
-          });
+    public async handleCSV(filepath: string) {
+        const data = await this.readData(filepath);
+        console.log(data)
     }
 
 }
