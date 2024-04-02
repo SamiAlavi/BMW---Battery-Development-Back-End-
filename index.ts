@@ -1,10 +1,10 @@
 import express from 'express';
 import cors from 'cors';
-import csv from 'csv-parser';
 import multer from 'multer';
-import fs from 'fs';
 import bodyParser from 'body-parser';
-import {databaseService} from './services/databaseservice';
+import { databaseService } from './services/databaseservice';
+import { csvHandlerService } from './services/csvhandlerservice';
+
 require('dotenv').config();
 
 const app = express();
@@ -44,49 +44,7 @@ app.post('/upload', upload.array('files'), (req, res) => {
 
 
     for (let file of files) {
-      // File processing logic
-      const fileRows: any[] = [];
-      const filepath = file.path;
-      fs.createReadStream(filepath)
-        .pipe(csv())
-        .on('data', (data) => fileRows.push(data))
-        .on('end', () => {
-          // console.log(fileRows)
-          // Insert data into SQLite table
-          // const placeholders = fileRows[0] ? '(' + Object.keys(fileRows[0]).map(_ => '?').join(', ') + ')' : null;
-          // if (!placeholders) {
-          //   res.status(400).send('Empty CSV file');
-          //   return;
-          // }
-
-          // const columns = Object.keys(fileRows[0]);
-          // const values = fileRows.map(row => columns.map(col => row[col]));
-
-          // const sql = `INSERT INTO your_table_name (${columns.join(', ')}) VALUES ${placeholders}`;
-          // db.serialize(() => {
-          //   db.run('BEGIN TRANSACTION');
-          //   values.forEach(row => {
-          //     db.run(sql, row, (err) => {
-          //       if (err) {
-          //         console.error('Error inserting data into table:', err);
-          //         res.status(500).send('Error inserting data into table');
-          //         return;
-          //       }
-          //     });
-          //   });
-          //   db.run('COMMIT', (err) => {
-          //     if (err) {
-          //       console.error('Error committing transaction:', err);
-          //       res.status(500).send('Error inserting data into table');
-          //       return;
-          //     }
-          //     console.log('Data inserted successfully');
-          //     res.send('File uploaded and data inserted into SQLite table successfully');
-          //   });
-          // });
-        });
-
-        fs.unlink(filepath, ()=>{})
+      csvHandlerService.handleCSV(file.path)
     }
 
     res.send(`${files.length} files successfully uploaded`);
