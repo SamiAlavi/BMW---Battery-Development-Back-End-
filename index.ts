@@ -10,6 +10,7 @@ require('dotenv').config();
 const app = express();
 app.use(cors())
 app.use(bodyParser.json());
+app.use(bodyParser.urlencoded({ extended: true }));
 
 // Multer configuration for file upload
 const upload = multer({ dest: 'uploads/' });
@@ -21,7 +22,6 @@ app.get('/', (req, res) => {
 
 // Endpoint for file upload
 app.post('/upload', upload.array('files'), (req, res) => {
-    console.log(req.files)
     if (!req.files) {
       res.status(400).send('No file uploaded');
       return;
@@ -39,6 +39,8 @@ app.post('/upload', upload.array('files'), (req, res) => {
         files.push(...temp[fieldname])
       })
     }
+
+    const type = req.body.type;
 
 
     for (let file of files) {
@@ -82,7 +84,8 @@ app.post('/upload', upload.array('files'), (req, res) => {
           //   });
           // });
         });
-    }    
+    }
+    res.send(`${files.length} files successfully uploaded`);
 });
 
 app.get('/csv_data', async (req, res) => {
