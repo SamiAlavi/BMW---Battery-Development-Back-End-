@@ -18,54 +18,58 @@ app.get('/', (req, res) => {
     res.send('Hello, world!');
 });
 
+
 // Endpoint for file upload
-app.post('/upload', upload.single('file'), (req, res) => {
-    // Check if file is provided
-    if (!req.file) {
+app.post('/upload', upload.array('files'), (req, res) => {
+    console.log(req.files)
+    if (!req.files || !Array.isArray(req.files)) {
       res.status(400).send('No file uploaded');
       return;
     }
 
-    // File processing logic
-    const fileRows: any[] = [];
-    fs.createReadStream(req.file.path)
-      .pipe(csv())
-      .on('data', (data) => fileRows.push(data))
-      .on('end', () => {
-        console.log(fileRows)
-        // Insert data into SQLite table
-        // const placeholders = fileRows[0] ? '(' + Object.keys(fileRows[0]).map(_ => '?').join(', ') + ')' : null;
-        // if (!placeholders) {
-        //   res.status(400).send('Empty CSV file');
-        //   return;
-        // }
-  
-        // const columns = Object.keys(fileRows[0]);
-        // const values = fileRows.map(row => columns.map(col => row[col]));
-  
-        // const sql = `INSERT INTO your_table_name (${columns.join(', ')}) VALUES ${placeholders}`;
-        // db.serialize(() => {
-        //   db.run('BEGIN TRANSACTION');
-        //   values.forEach(row => {
-        //     db.run(sql, row, (err) => {
-        //       if (err) {
-        //         console.error('Error inserting data into table:', err);
-        //         res.status(500).send('Error inserting data into table');
-        //         return;
-        //       }
-        //     });
-        //   });
-        //   db.run('COMMIT', (err) => {
-        //     if (err) {
-        //       console.error('Error committing transaction:', err);
-        //       res.status(500).send('Error inserting data into table');
-        //       return;
-        //     }
-        //     console.log('Data inserted successfully');
-        //     res.send('File uploaded and data inserted into SQLite table successfully');
-        //   });
-        // });
-      });
+
+    for (let file of req.files) {
+      // File processing logic
+      const fileRows: any[] = [];
+      fs.createReadStream(file.path)
+        .pipe(csv())
+        .on('data', (data) => fileRows.push(data))
+        .on('end', () => {
+          // console.log(fileRows)
+          // Insert data into SQLite table
+          // const placeholders = fileRows[0] ? '(' + Object.keys(fileRows[0]).map(_ => '?').join(', ') + ')' : null;
+          // if (!placeholders) {
+          //   res.status(400).send('Empty CSV file');
+          //   return;
+          // }
+
+          // const columns = Object.keys(fileRows[0]);
+          // const values = fileRows.map(row => columns.map(col => row[col]));
+
+          // const sql = `INSERT INTO your_table_name (${columns.join(', ')}) VALUES ${placeholders}`;
+          // db.serialize(() => {
+          //   db.run('BEGIN TRANSACTION');
+          //   values.forEach(row => {
+          //     db.run(sql, row, (err) => {
+          //       if (err) {
+          //         console.error('Error inserting data into table:', err);
+          //         res.status(500).send('Error inserting data into table');
+          //         return;
+          //       }
+          //     });
+          //   });
+          //   db.run('COMMIT', (err) => {
+          //     if (err) {
+          //       console.error('Error committing transaction:', err);
+          //       res.status(500).send('Error inserting data into table');
+          //       return;
+          //     }
+          //     console.log('Data inserted successfully');
+          //     res.send('File uploaded and data inserted into SQLite table successfully');
+          //   });
+          // });
+        });
+    }    
 });
 
 app.get('/csv_data', async (req, res) => {
