@@ -4,7 +4,9 @@ import { databaseService } from './databaseservice';
 
 type TCSVData = {headers: string[] , rows: any[]};
 
-class CSVHandlerService {
+class CSVHandlerService {    
+    private SQL_BATCH_SIZE = 6000
+
     private readonly table_CSV_Data = "CSV_Data"
     private readonly table_Capacity = "capacity"
     private readonly table_Cycle = "cycle"
@@ -14,7 +16,7 @@ class CSVHandlerService {
     private readonly cols_Cycle = [ 'current', 'cycle_number', 'file_id', 'time', 'voltage' ]
     
     private readonly sql_CSV_Data = `INSERT INTO ${this.table_CSV_Data} (${this.cols_CSV_Data.join(',')}) VALUES (?, ?, ?) `
-    private readonly sql_Capacity = `INSERT INTO ${this.table_Capacity} (${this.cols_Capacity.join(',')})  VALUES `
+    private readonly sql_Capacity = `INSERT INTO ${this.table_Capacity} (${this.cols_Capacity.join(',')}) VALUES `
     private readonly sql_Cycle = `INSERT INTO ${this.table_Cycle} (${this.cols_Cycle.join(',')} VALUES `
 
     private readonly csv_read_options: Options = {
@@ -65,6 +67,16 @@ class CSVHandlerService {
         return true;
     }
 
+    private async runBatches(csvDataID: number, insertSql: string, placeholder: string, rows: any[], mapperFunc: (csvDataID: number, row: any) => any[]) {
+        for (let i=0; i<rows.length; i+=this.SQL_BATCH_SIZE) {
+            const batch = rows.slice(i, i + this.SQL_BATCH_SIZE);
+            const placeholders = batch.map(() => placeholder).join(',');
+            const values = batch.flatMap(row => mapperFunc(csvDataID, row));
+            const sql = `${insertSql}${placeholders}`
+            await databaseService.insert(sql, values)
+        }
+    }
+
     private async addToTableCSV_Data(filename: string, type: string): Promise<number> {
         const query = `${this.sql_CSV_Data}`;
         const params = [filename, Date.now(), type]
@@ -72,23 +84,31 @@ class CSVHandlerService {
         return csvDataID;
     }
 
-    private async addToTableCapacty(data: TCSVData) {
+    private mapperCapacity(csvDataID: number, row: any) {
+        const cycle_number = parseInt(row.cycle_number)
+        const capacity = parseFloat(row.capacity)
+        return [capacity, cycle_number, csvDataID] // [ 'capacity', 'cycle_number', 'file_id']
+    }
+
+    private async addToTableCapacty(csvDataID: number, data: TCSVData) {
         const cols = this.filterFileIdCol(this.cols_Capacity)
         const validate = this.validateHeaders(data.headers, cols)
         if (!validate) {
             throw Error(`Required Columns: ${cols.join(', ')}`)
         }
-
-        const query = `${this.sql_Capacity}`;
+        const insertSql = `${this.sql_Capacity}`;
         const placeholder = `(${this.cols_Capacity.map((_) => '?').join(',')})`
-        console.log(query)
-        console.log(placeholder)
+        await this.runBatches(csvDataID, insertSql, placeholder, data.rows, this.mapperCapacity)
     }
 
     public async handleCSV(file: Express.Multer.File, type: string) {
         const data = await this.readData(file.path);
         const csvDataID = await this.addToTableCSV_Data(file.originalname, type)
-        this.addToTableCapacty(data)
+        if (type === 'capacity') {
+            await this.addToTableCapacty(csvDataID, data)
+        }
+        else if (type === 'cycle') {
+        }
     }
 
 }
