@@ -42,8 +42,14 @@ app.post('/upload', upload.array('files'), async (req, res) => {
 
     const type = req.body.type;
 
-    for (let file of files) {
-      await csvHandlerService.handleCSV(file, type)
+    try {
+      for (let file of files) {
+        await csvHandlerService.handleCSV(file, type)
+      }
+    }
+    catch (error: any) {
+      const errorMessage = `Internal server error: ${error?.message}`
+      res.status(500).json({ error: errorMessage });
     }
 
     res.send(`${files.length} files successfully uploaded`);
