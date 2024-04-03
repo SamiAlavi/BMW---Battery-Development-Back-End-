@@ -2,6 +2,7 @@ import express from 'express';
 import cors from 'cors';
 import multer from 'multer';
 import bodyParser from 'body-parser';
+import fs from 'fs';
 import { databaseService } from './services/databaseservice';
 import { csvHandlerService } from './services/csvhandlerservice';
 
@@ -51,6 +52,11 @@ app.post('/upload', upload.array('files'), async (req, res) => {
       const errorMessage = `${error?.message}`
       res.status(500).send(errorMessage);
       return
+    }
+    finally {
+      for (let file of files) {
+        fs.unlink(file.path, ()=>{})
+      }      
     }
 
     res.send(`${files.length} files successfully uploaded`);

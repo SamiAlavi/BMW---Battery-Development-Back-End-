@@ -38,9 +38,6 @@ class CSVHandlerService {
               })
               .on('data', (data) => _data.rows.push(data))
               .on('end', () => {
-                setTimeout(() => {
-                    fs.unlink(filepath, ()=>{})
-                }, 1000)
                 resolve(_data);
               })
               .on('error', (error) => {
