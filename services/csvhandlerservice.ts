@@ -17,7 +17,7 @@ class CSVHandlerService {
     
     private readonly sql_CSV_Data = `INSERT INTO ${this.table_CSV_Data} (${this.cols_CSV_Data.join(',')}) VALUES (?, ?, ?) `
     private readonly sql_Capacity = `INSERT INTO ${this.table_Capacity} (${this.cols_Capacity.join(',')}) VALUES `
-    private readonly sql_Cycle = `INSERT INTO ${this.table_Cycle} (${this.cols_Cycle.join(',')} VALUES `
+    private readonly sql_Cycle = `INSERT INTO ${this.table_Cycle} (${this.cols_Cycle.join(',')}) VALUES `
 
     private readonly csv_read_options: Options = {
         
@@ -101,6 +101,25 @@ class CSVHandlerService {
         await this.runBatches(csvDataID, insertSql, placeholder, data.rows, this.mapperCapacity)
     }
 
+    private mapperCycle(csvDataID: number, row: any) {
+        const cycle_number = parseInt(row.cycle_number)
+        const time = parseInt(row.time)
+        const current = parseFloat(row.current)
+        const voltage = parseFloat(row.voltage)
+        return [current, cycle_number, csvDataID, time, voltage] // [ 'current', 'cycle_number', 'file_id', 'time', 'voltage' ]
+    }
+
+    private async addToTableCycle(csvDataID: number, data: TCSVData) {
+        const cols = this.filterFileIdCol(this.cols_Cycle)
+        const validate = this.validateHeaders(data.headers, cols)
+        if (!validate) {
+            throw Error(`Required Columns: ${cols.join(', ')}`)
+        }
+        const insertSql = `${this.sql_Cycle}`;
+        const placeholder = `(${this.cols_Cycle.map((_) => '?').join(',')})`
+        await this.runBatches(csvDataID, insertSql, placeholder, data.rows, this.mapperCycle)
+    }
+
     public async handleCSV(file: Express.Multer.File, type: string) {
         const data = await this.readData(file.path);
         const csvDataID = await this.addToTableCSV_Data(file.originalname, type)
@@ -108,6 +127,7 @@ class CSVHandlerService {
             await this.addToTableCapacty(csvDataID, data)
         }
         else if (type === 'cycle') {
+            await this.addToTableCycle(csvDataID, data)
         }
     }
 
