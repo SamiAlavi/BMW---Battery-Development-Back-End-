@@ -48,8 +48,9 @@ app.post('/upload', upload.array('files'), async (req, res) => {
       }
     }
     catch (error: any) {
-      const errorMessage = `Internal server error: ${error?.message}`
+      const errorMessage = `${error?.message}`
       res.status(500).json({ error: errorMessage });
+      return
     }
 
     res.send(`${files.length} files successfully uploaded`);
