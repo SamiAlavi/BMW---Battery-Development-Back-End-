@@ -31,16 +31,19 @@ class CSVHandlerService {
             fs.createReadStream(filepath)
               .pipe(csv(this.csv_read_options))
               .on('headers', (_headers: string[]) => {
+                _headers = _headers.map(header => header.toLowerCase());
                 _data.headers.push(..._headers)
               })
               .on('data', (data) => _data.rows.push(data))
-              .on('error', reject)
               .on('end', () => {
                 setTimeout(() => {
                     fs.unlink(filepath, ()=>{})
                 }, 1000)
                 resolve(_data);
-              });
+              })
+              .on('error', (error) => {
+                reject(error);
+            });;
         })
     }
 
@@ -58,13 +61,16 @@ class CSVHandlerService {
         return true;
     }
 
-    private addToTableCSV_Data(data: TCSVData) {
-
+    private async addToTableCSV_Data(file: Express.Multer.File, type: string): Promise<number> {
+        const query = `${this.sql_CSV_Data}`;
+        const params = [file.originalname, type, Date.now()]
+        const csvDataID = await databaseService.insert(query, params)
+        return csvDataID;
     }
 
-    public async handleCSV(filepath: string) {
-        const data = await this.readData(filepath);
-        console.log(data)
+    public async handleCSV(file: Express.Multer.File, type: string) {
+        const data = await this.readData(file.path);
+        const csvDataID = await this.addToTableCSV_Data(file, type)
     }
 
 }

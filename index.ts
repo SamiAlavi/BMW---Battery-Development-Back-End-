@@ -42,9 +42,8 @@ app.post('/upload', upload.array('files'), async (req, res) => {
 
     const type = req.body.type;
 
-
     for (let file of files) {
-      await csvHandlerService.handleCSV(file.path)
+      await csvHandlerService.handleCSV(file, type)
     }
 
     res.send(`${files.length} files successfully uploaded`);
