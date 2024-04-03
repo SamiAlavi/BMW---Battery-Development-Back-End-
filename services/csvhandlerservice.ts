@@ -61,16 +61,16 @@ class CSVHandlerService {
         return true;
     }
 
-    private async addToTableCSV_Data(file: Express.Multer.File, type: string): Promise<number> {
+    private async addToTableCSV_Data(filename: string, type: string): Promise<number> {
         const query = `${this.sql_CSV_Data}`;
-        const params = [file.originalname, type, Date.now()]
+        const params = [filename, type, Date.now()]
         const csvDataID = await databaseService.insert(query, params)
         return csvDataID;
     }
 
     public async handleCSV(file: Express.Multer.File, type: string) {
         const data = await this.readData(file.path);
-        const csvDataID = await this.addToTableCSV_Data(file, type)
+        const csvDataID = await this.addToTableCSV_Data(file.originalname, type)
     }
 
 }
