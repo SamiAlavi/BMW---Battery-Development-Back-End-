@@ -62,8 +62,8 @@ app.get('/csv_data', async (req, res) => {
       const rows = await databaseService.query(query);
       res.json(rows);
   } catch (error: any) {
-      const errorMessage = `Internal server error: ${error?.message}`
-      res.status(500).json({ error: errorMessage });
+      const errorMessage = `${error?.message}`
+      res.status(500).send(errorMessage);
   }
 });
 
@@ -136,8 +136,8 @@ app.post('/visualize', async (req, res) => {
     })
     res.json(result);
 } catch (error: any) {
-    const errorMessage = `Internal server error: ${error?.message}`
-    res.status(500).json({ error: errorMessage });
+    const errorMessage = `${error?.message}`
+    res.status(500).send(errorMessage);
 }
 });
 
