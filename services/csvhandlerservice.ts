@@ -10,12 +10,12 @@ class CSVHandlerService {
     private readonly table_Cycle = "cycle"
 
     private readonly cols_CSV_Data = ['filename', 'timestamp', 'type']
-    private readonly cols_Capacity = ['file_id', 'cycle_number', 'capacity']
-    private readonly cols_Cycle = ['file_id', 'cycle_number', 'time', 'current', 'voltage']
+    private readonly cols_Capacity = [ 'capacity', 'cycle_number', 'file_id']
+    private readonly cols_Cycle = [ 'current', 'cycle_number', 'file_id', 'time', 'voltage' ]
     
-    private readonly sql_CSV_Data = `INSERT INTO ${this.table_CSV_Data} (filename, type, timestamp) VALUES (?, ?, ?) `
-    private readonly sql_Capacity = `INSERT INTO ${this.table_Capacity} (file_id, cycle_number, capacity) VALUES `
-    private readonly sql_Cycle = `INSERT INTO ${this.table_Cycle} (file_id, cycle_number, time, current, voltage) VALUES `
+    private readonly sql_CSV_Data = `INSERT INTO ${this.table_CSV_Data} (${this.cols_CSV_Data.join(',')}) VALUES (?, ?, ?) `
+    private readonly sql_Capacity = `INSERT INTO ${this.table_Capacity} (${this.cols_Capacity.join(',')})  VALUES `
+    private readonly sql_Cycle = `INSERT INTO ${this.table_Cycle} (${this.cols_Cycle.join(',')} VALUES `
 
     private readonly csv_read_options: Options = {
         
@@ -63,7 +63,7 @@ class CSVHandlerService {
 
     private async addToTableCSV_Data(filename: string, type: string): Promise<number> {
         const query = `${this.sql_CSV_Data}`;
-        const params = [filename, type, Date.now()]
+        const params = [filename, Date.now(), type]
         const csvDataID = await databaseService.insert(query, params)
         return csvDataID;
     }
