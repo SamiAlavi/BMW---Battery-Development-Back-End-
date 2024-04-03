@@ -49,7 +49,7 @@ app.post('/upload', upload.array('files'), async (req, res) => {
     }
     catch (error: any) {
       const errorMessage = `${error?.message}`
-      res.status(500).json({ error: errorMessage });
+      res.status(500).send(errorMessage);
       return
     }
 
