@@ -47,11 +47,15 @@ class CSVHandlerService {
         })
     }
 
+    private filterFileIdCol(arr: string[]): string[] {
+        return arr.filter((col) => col!=='file_id')
+    }
+
     private validateHeaders(headers: string[], reqHeaders: string[]): boolean {
         if (headers.length !== reqHeaders.length) {
             return false
         }
-        headers = [...new Set(headers)];
+        headers = [...new Set(headers)].sort();
 
         for (let i = 0; i < headers.length; i++) {
             if (headers[i] !== reqHeaders[i]) {
@@ -68,9 +72,23 @@ class CSVHandlerService {
         return csvDataID;
     }
 
+    private async addToTableCapacty(data: TCSVData) {
+        const cols = this.filterFileIdCol(this.cols_Capacity)
+        const validate = this.validateHeaders(data.headers, cols)
+        if (!validate) {
+            throw Error(`Required Columns: ${cols.join(', ')}`)
+        }
+
+        const query = `${this.sql_Capacity}`;
+        const placeholder = `(${this.cols_Capacity.map((_) => '?').join(',')})`
+        console.log(query)
+        console.log(placeholder)
+    }
+
     public async handleCSV(file: Express.Multer.File, type: string) {
         const data = await this.readData(file.path);
         const csvDataID = await this.addToTableCSV_Data(file.originalname, type)
+        this.addToTableCapacty(data)
     }
 
 }
