@@ -1,13 +1,34 @@
 import sqlite3 from 'sqlite3';
+import path from 'path';
+import fs from 'fs';
+
 require('dotenv').config();
 
 const sqlite3Verbose = sqlite3.verbose()
 const dbPath = process.env.DB_NAME ?? "database.db";
+const scriptDir = 'scripts'
+const scriptPath = path.join(scriptDir, 'schema.sql');
 
 class DatabaseService {
     private db = new sqlite3.Database(dbPath);
 
     constructor() {
+        this.initDb();
+    }
+
+    private initDb() {
+        const sqlScript = fs.readFileSync(scriptPath, 'utf8');
+    
+        // Execute the SQL script
+        this.db.serialize(() => {
+            this.db.exec(sqlScript, async function(err) {
+                if (err) {
+                    console.error('Error executing script:', err);
+                } else {
+                    console.log('Schema Script executed successfully');
+                }
+            });
+        });
     }
 
     public close(): void {
