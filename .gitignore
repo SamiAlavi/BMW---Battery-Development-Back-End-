@@ -2,3 +2,4 @@ node_modules
 database.db
 csv_data
 uploads
+dist-dev
