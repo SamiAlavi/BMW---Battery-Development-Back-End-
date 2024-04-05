@@ -14,7 +14,10 @@ app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 
 // Multer configuration for file upload
-const upload = multer({ dest: 'uploads/' });
+const multerOptions: multer.Options = {
+  dest: 'uploads/'
+}
+const upload = multer(multerOptions);
 
 app.get('/', (req, res) => {
     res.send('Hello, world!');
