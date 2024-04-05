@@ -12,7 +12,7 @@ For Frontend, visit this repository.
 
 1) Run `npm run start`.
 
-## Development Build
+## Build
 
-1) Run `npm run build:dev`.
-2) Run `npm run start:dev`.
+1) Run `npm run build:prod`.
+2) Run `npm run start:prod`.

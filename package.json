@@ -5,8 +5,8 @@
   "main": "index.js",
   "scripts": {
     "start": "nodemon --exec ts-node ./index.ts",
-    "build:dev": "npx tsc -p tsconfig.json --outDir dist-dev",
-    "start:dev": "node dist-dev/index.js",
+    "build:prod": "npx tsc -p tsconfig.json --outDir dist",
+    "start:prod": "node dist/index.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [],
