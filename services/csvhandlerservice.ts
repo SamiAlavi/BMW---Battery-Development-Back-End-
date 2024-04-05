@@ -74,7 +74,12 @@ class CSVHandlerService {
         }
     }
 
-    private async addToTableCSV_Data(filename: string, type: string): Promise<number> {
+    private async addToTableCSV_Data(filename: string, type: string, headers: string[]): Promise<number> {
+        const cols = this.filterFileIdCol(type === 'capacity' ? this.cols_Capacity : this.cols_Cycle)
+        const validate = this.validateHeaders(headers, cols)
+        if (!validate) {
+            throw Error(`Required Columns: ${cols.join(', ')}`)
+        }
         const query = `${this.sql_CSV_Data}`;
         const params = [filename, Date.now(), type]
         const csvDataID = await databaseService.insert(query, params)
@@ -88,11 +93,6 @@ class CSVHandlerService {
     }
 
     private async addToTableCapacty(csvDataID: number, data: TCSVData) {
-        const cols = this.filterFileIdCol(this.cols_Capacity)
-        const validate = this.validateHeaders(data.headers, cols)
-        if (!validate) {
-            throw Error(`Required Columns: ${cols.join(', ')}`)
-        }
         const insertSql = `${this.sql_Capacity}`;
         const placeholder = `(${this.cols_Capacity.map((_) => '?').join(',')})`
         await this.runBatches(csvDataID, insertSql, placeholder, data.rows, this.mapperCapacity)
@@ -107,11 +107,6 @@ class CSVHandlerService {
     }
 
     private async addToTableCycle(csvDataID: number, data: TCSVData) {
-        const cols = this.filterFileIdCol(this.cols_Cycle)
-        const validate = this.validateHeaders(data.headers, cols)
-        if (!validate) {
-            throw Error(`Required Columns: ${cols.join(', ')}`)
-        }
         const insertSql = `${this.sql_Cycle}`;
         const placeholder = `(${this.cols_Cycle.map((_) => '?').join(',')})`
         await this.runBatches(csvDataID, insertSql, placeholder, data.rows, this.mapperCycle)
@@ -119,7 +114,7 @@ class CSVHandlerService {
 
     public async handleCSV(file: Express.Multer.File, type: string) {
         const data = await this.readData(file.path);
-        const csvDataID = await this.addToTableCSV_Data(file.originalname, type)
+        const csvDataID = await this.addToTableCSV_Data(file.originalname, type, data.headers)
         if (type === 'capacity') {
             await this.addToTableCapacty(csvDataID, data)
         }
